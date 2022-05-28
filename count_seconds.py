@@ -11,7 +11,7 @@ def say_seconds(something):
     engine.runAndWait()
     time.sleep(step_seconds - (time.time() - start_time))
 
-for minutes in range(max_minutes + 1):
+for minutes in range(max_minutes):
     if minutes == 0:
         minutes_str = ""
         say_seconds("Start")
