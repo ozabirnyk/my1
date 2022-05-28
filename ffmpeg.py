@@ -6,7 +6,7 @@ output_dir = "C:\\Users\\zabir\\Downloads\\Ольга Василенко mp3"
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 
-input_dir_list = os.listdir(work_dir)
+input_dir_list = os.listdir(input_dir)
 
 for sub_dir in input_dir_list:
     current_input_dir = input_dir + "\\" + sub_dir
