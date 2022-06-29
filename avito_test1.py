@@ -38,3 +38,4 @@ if check(input()):
     print('true')
 else:
     print('false')
+ 
