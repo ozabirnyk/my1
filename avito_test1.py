@@ -21,23 +21,16 @@ true
 
 
 def check(ss):
-    s = ss
-    for j in range(4):
-        if j == 3:
-            s1 = s
-        else:
-            i = s.find('.')
-            if i == -1:
-                return False
-            s1 = s[:i]
+    s = ss.split('.')
+    if len(s) != 4:
+        return False
+    for s1 in s:
         try:
             a = int(s1)
-        except:
+        except ValueError:
             return False
         if (a < 0) or (a > 255):
             return False
-        if j < 3:
-            s = s[i + 1:]
     return True
 
 
