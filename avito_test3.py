@@ -46,3 +46,4 @@ for k in range((n + 1) // 2):   # k is a shift of inner square
         for i in range(m):
             print(a[k][k + m - i], end=' ')
 print('')
+ 
