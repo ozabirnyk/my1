@@ -5,10 +5,9 @@
 
 import os
 import time
-import numpy as np
+import random
 from PIL import Image
-
-image_size = (100, 100)
+import numpy                                               # only for tests
 
 
 def load_dataset(folder_name):
@@ -16,16 +15,130 @@ def load_dataset(folder_name):
     for filename in os.listdir(folder_name):
         pic = Image.open(os.path.join(folder_name, filename))
         pic = pic.resize(image_size)
-        dataset.append(np.array(pic.getdata()).reshape((pic.size[0], pic.size[1], 3)))
+        dataset.append(pic.getdata())
     return dataset
 
+
+def index_reshape(start, index, size):
+    index1d = start
+    multiplier1d = 1
+    for i in range(len(size) - 1, -1, -1):
+        index1d += index[i] * multiplier1d
+        multiplier1d *= size[i]
+    return index1d
+
+
+def test():
+    flag_ok = True
+    print('Running tests...')
+
+    error_message = 'index_reshape test failed'
+    n = (10, 10, 3)
+    a = numpy.arange(300)
+    b = a.reshape(n)
+    i1 = []
+    for i in range(len(n)):
+        i1.append(random.randint(0, n[i]-1))
+    if index_reshape(0, i1, n) != b[tuple(i1)]:
+        print(error_message)
+        flag_ok = False
+
+    if flag_ok:
+        print('All tests passed successfully.')
+    return flag_ok
+
+
+class ArtificailNeuralNetwork:
+
+    def __init__(self, receptors):
+        self.receptors = receptors
+        self.neurons = receptors
+        self.coefficients = 0
+        self.layer = [['receptors', [receptors], [], []]]
+
+    def print(self):
+        print('My artificial neural network:')
+        print(f'receptors: {self.receptors}, neurons: {self.neurons}, coefficients: {self.coefficients}.')
+        for i in range(len(self.layer)):
+            print('')
+            print(f'Layer {i}, class: {self.layer[i][0]}')
+            print('Layer parameters:', self.layer[i][1])
+            print('Indexes of connections:', self.layer[i][2])
+            print('Indexes of coefficients:', self.layer[i][3])
+
+    def add_layer(self, layername, parameters):
+
+        input_neurons = self.layer[len(self.layer) - 1][1][0]
+        prev_layer_start = self.neurons - input_neurons
+        prev_coefficients = self.coefficients
+        new_neurons = parameters[0]
+        new_layer_connections = list()
+        new_layer_coefficients = list()
+
+        if layername == 'fully_connected':
+            current_coefficients = prev_coefficients
+
+            for i in range(new_neurons):                   # add i-th neuron in a new layer
+                new_layer_coefficients.append(list(range(current_coefficients, current_coefficients + input_neurons)))
+                current_coefficients += input_neurons
+
+            self.neurons += new_neurons
+            self.coefficients += new_neurons * input_neurons
+            new_layer_connections = [list(range(prev_layer_start, prev_layer_start + input_neurons))] * new_neurons
+            self.layer.append([layername, parameters, new_layer_connections, new_layer_coefficients])
+
+        elif layername == 'convolutional':
+            size_x = parameters[1]                      # input width
+            size_y = parameters[2]                      # input height
+            size_z = parameters[3]                      # input channels
+            prev_layer_dimensions = (size_x, size_y, size_z)
+            size_w = parameters[4]                      # the size of the window
+            size_new_x = size_x - size_w + 1
+            size_new_y = size_y - size_w + 1
+
+            if size_new_x*size_new_y != new_neurons:
+                print('Incorrect parameters for the new layer')
+
+            for x in range(size_new_x):
+                for y in range(size_new_y):
+                    neuron_connections = []
+                    for z in range(size_z):
+                        for w1 in range(size_w):
+                            for w2 in range(size_w):
+                                # index_reshape(start, index, size):
+                                neuron_connections.append(index_reshape(prev_layer_start, (x+w1, y+w2, z),
+                                                                        prev_layer_dimensions))
+                    new_layer_connections.append(neuron_connections)
+
+            new_layer_coefficients = [list(range(prev_coefficients, prev_coefficients + size_w**2*size_z))] * new_neurons
+            self.neurons += new_neurons
+            self.coefficients += size_w**2 * size_z
+            self.layer.append([layername, parameters, new_layer_connections, new_layer_coefficients])
+
+        else:
+            print('Undefined layer: ', layername)
+
+    def add_layers(self, layers):
+        for i in range(len(layers)):
+            self.add_layer(layers[i][0], layers[i][1])
+
+
+test()                                                     # bug test before run
+
+my_input_image_size = (100, 100)
+my_frame_size = 3
+my_convolutional_neurons = (my_input_image_size[0]-my_frame_size+1) * (my_input_image_size[1]-my_frame_size+1)
+my_layers = list()
+my_layers.append(['convolutional', [my_convolutional_neurons, my_input_image_size[0], my_input_image_size[0], 3, my_frame_size]])
+my_layers.append(['fully_connected', [32]])
+my_layers.append(['fully_connected', [4]])
+my_layers.append(['fully_connected', [2]])
 
 start_time = time.time()
 print('Loading dataset... ', end='')
 
-dogs_dataset = load_dataset('dogs')
-cats_dataset = load_dataset('cats')
-test_dataset = load_dataset('test')
+cat_or_dog = ArtificailNeuralNetwork(my_input_image_size[0] * my_input_image_size[1] * 3)
+cat_or_dog.add_layers(my_layers)
 
 execution_time = time.time() - start_time
 print(f'Done in {round(execution_time, 3)} seconds.')
